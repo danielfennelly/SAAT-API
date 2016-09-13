@@ -1,6 +1,5 @@
 from utils import unix_time_millis
-from datetime import datetime as dt, timedelta as td
-import iso8601
+from datetime import datetime as dt, timedelta as td, timezone
 
 def generate_heartbeats(start_datetime, end_datetime, bpm):
 	"""
@@ -17,7 +16,7 @@ def generate_heartbeats(start_datetime, end_datetime, bpm):
 	return heartbeats
 
 if __name__ == "__main__":
-	start = dt.now()
+	start = dt.now(timezone.utc)
 	end = start + td(seconds=60)
 	bpm = 80
 	print(start)
