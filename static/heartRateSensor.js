@@ -8,6 +8,17 @@
       this._characteristics = new Map()
     }
 
+    connectToDatabase () {
+      return new Promise((resolve, reject) => {
+        // TODO: Resolve this with data from the database instead of fake data
+        var fakeData = []
+        for (var i = 0; i < 100; i++) {
+          fakeData.push({ heartRate: 100 * Math.random() })
+        }
+        resolve(fakeData)
+      })
+    }
+
     connect () {
       return navigator.bluetooth.requestDevice({filters: [{services: [ 'heart_rate' ]}]})
       .then(device => {

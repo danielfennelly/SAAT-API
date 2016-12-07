@@ -12,27 +12,42 @@ statusText.addEventListener('click', function () {
   statusText.textContent = 'Connecting...'
   heartRates = []
   variability = []
-  heartRateSensor.connect()
-  .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
-  .catch(error => {
-    statusText.textContent = error
-  })
+  if (!navigator.bluetooth) {
+    heartRateSensor.connectToDatabase().then((heartRateMeasurements) => {
+      heartRateMeasurements.forEach((measurement) => {
+        displayHeartRates(measurement)
+      })
+    })
+    .catch(error => {
+      statusText.textContent = error
+    })
+  } else {
+    heartRateSensor.connect()
+    .then(() => heartRateSensor.startNotificationsHeartRateMeasurement().then(handleHeartRateMeasurement))
+    .catch(error => {
+      statusText.textContent = error
+    })
+  }
 })
+
+function displayHeartRates (heartRateMeasurement) {
+  statusText.innerHTML = heartRateMeasurement.heartRate + ' &#x2764;'
+  heartRates.push(heartRateMeasurement.heartRate)
+  let v = 0
+  if (heartRates.length < WINDOW_SIZE) {
+    v = standardDeviation(heartRates)
+  } else {
+    v = standardDeviation(heartRates.slice(heartRates.length - WINDOW_SIZE))
+  }
+  variabilityText.innerHTML = v
+  variability.push(v)
+  drawWaves()
+}
 
 function handleHeartRateMeasurement (heartRateMeasurement) {
   heartRateMeasurement.addEventListener('characteristicvaluechanged', event => {
     var heartRateMeasurement = heartRateSensor.parseHeartRate(event.target.value)
-    statusText.innerHTML = heartRateMeasurement.heartRate + ' &#x2764;'
-    heartRates.push(heartRateMeasurement.heartRate)
-    let v = 0
-    if (heartRates.length < WINDOW_SIZE) {
-      v = standardDeviation(heartRates)
-    } else {
-      v = standardDeviation(heartRates.slice(heartRates.length - WINDOW_SIZE))
-    }
-    variabilityText.innerHTML = v
-    variability.push(v)
-    drawWaves()
+    displayHeartRates(heartRateMeasurement)
   })
 }
 
