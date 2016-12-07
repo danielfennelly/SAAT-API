@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from utils import json_response, parse_datetime, unix_time_millis
 
 app = Flask(__name__)
@@ -46,4 +46,8 @@ def heartbeats():
 		return delete_heartbeats()
 	else:
 		return json_response('Bad Request', 400)
+
+@app.route('/', methods=['GET'])
+def show_heartbeats():
+        return render_template('index.html')
 
