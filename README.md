@@ -4,7 +4,7 @@ This repository contains code for a [Flask](http://flask.pocoo.org/docs/0.11/) A
 
 ## Running the server locally
 
-You'll want to [install virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) to manage dependencies. Create a virtual environment named `venv` and then use the new environment's `pip` to install dependencies like so:
+You'll want to [install virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) to manage dependencies. Create a Python 3 virtual environment named `venv` and then use the new environment's `pip` to install dependencies like so:
 
     venv/bin/pip install -r requirements.txt
     
