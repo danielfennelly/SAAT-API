@@ -53,7 +53,8 @@ class User:
         conn.commit()
         res = {
             "message": "User successfully created!",
-            "id": user_id
+            "id": user_id,
+            "apiToken": api_key
         }
         return make_response(jsonify(res), 201)
 
