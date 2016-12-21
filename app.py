@@ -11,7 +11,7 @@ import uuid
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
-PG_PORT = 8000
+#PG_PORT = 8000
 
 class User:
 #    def __init__(self):
@@ -70,7 +70,7 @@ class User:
 class HeartBeat:
     @staticmethod
     def validate_post(data):
-        VALID_KEYS = ["mobile_time", "rr_interval", "batch_idx"]
+        VALID_KEYS = ["mobile_time", "rr_interval", "batch_idx", "api_key"]
         key_count = 0
         for key in data.keys():
             if key in VALID_KEYS:
@@ -84,9 +84,12 @@ class HeartBeat:
         conn = psycopg2.connect(user="saat", password="CHANGEME",
                 host="tf-201611180437251236751897ul.chhanozbpeca.us-west-2.rds.amazonaws.com", dbname="saatdb01")
         cur = conn.cursor()
-        cur.execute("SELECT id FROM Users WHERE apiKey={};".format(api_key))
-        if cur.fetchone() is not None:
+        cur.execute("SELECT id FROM Users WHERE apiKey='{}';".format(data["api_key"]))
+        result = cur.fetchone()
+        if result is None:
             abort(401, "Incorrect API key, please try again with a different one!")
+        else:
+            return result
 
     @staticmethod
     def post(data):
@@ -103,7 +106,12 @@ class HeartBeat:
         cur = conn.cursor()
         # This should be threadsafe as opposed to relying on data.keys() and data.values()
         keys, values = zip(*data.items())
-        cur.execute("INSERT INTO HeartRate ({}) VALUES ({})".format(",".join(keys), ",".join(values)))
+        # TODO: make sure HeartRate table and schema is already created
+        # TODO: validate the below SQL call
+        # TODO: Add bulk upload (list of heart rate values instead of single value)
+        # TODO: Add user ID value into heartrate data (Do a user lookup)
+        cur.execute("INSERT INTO HeartRate ('{}') VALUES ('{}')".format(",".join(keys), ",".join(values)))
+        conn.commit()
         return json_response('Posted heartbeats', 201)
 
 ## TODO: Implement PUT
@@ -145,7 +153,8 @@ def execute(method, event_type, data=None):
 @app.route('/events/<event_type>', methods=['POST', "PUT", "DELETE"])
 def event_insert(event_type):
     validate = getattr(executors[event_type], "validate_{}".format(request.method))
-    if validate():
+    # TODO: Adjust validate comparison here (it's not a bool anymore)
+    if validate(request.json):
         return execute(request.method, event_type, request.json)
     else:
         return json_response("Bad Request", 400)
@@ -179,6 +188,14 @@ def client_error(error):
         "message": error.description
     }
     return make_response(jsonify(json_error), 400)
+
+@app.errorhandler(401)
+def client_error(error):
+    json_error = {
+        "error": "Unauthorized.",
+        "message": error.description
+    }
+    return make_response(jsonify(json_error), 401)
 
 @app.errorhandler(404)
 def not_found(error):
