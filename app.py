@@ -13,7 +13,6 @@ PG_HOST = (
     "tf-201611180437251236751897ul"
     ".chhanozbpeca.us-west-2.rds.amazonaws.com")
 
-
 class User:
 
     @staticmethod
@@ -49,6 +48,7 @@ class User:
 
         cur.execute(create_statement)
         conn.commit()
+        #TODO: something seems funky with below logic. some ID variable is misnamed
         cur.execute("SELECT id FROM Users WHERE id='{}';".format(user_id))
         if cur.fetchone() is not None:
             abort(409, "User with selected ID already exists!")
@@ -83,7 +83,7 @@ class HeartBeat:
             else:
                 return False
         if key_count == len(VALID_KEYS):
-            return True
+            return True #TODO: eventually this should just pass to get to the below user lookup logic
         else:
             return False
         conn = psycopg2.connect(user="saat", password="CHANGEME",
@@ -139,6 +139,12 @@ def execute(method, event_type, data=None):
     except KeyError:
         return {}
 
+@app.route('/measurements/rr_intervals',methods=['POST'])
+def measurement_post_temp():
+    print("method: {}".format(request.method)) 
+    print("json: {}".format(request.json))
+    return json_response('Posted RRIs', 201)
+
 
 @app.route('/events/<event_type>', methods=['POST', "PUT", "DELETE"])
 def event_insert(event_type):
@@ -149,7 +155,6 @@ def event_insert(event_type):
         return execute(request.method, event_type, request.json)
     else:
         return json_response("Bad Request", 400)
-
 
 @app.route('/user/<exec_>', methods=['POST'])
 @app.route('/user', methods=['POST'])
