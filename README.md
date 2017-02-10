@@ -21,3 +21,11 @@ The `curl` commands below demonstrate basic interaction with the API. The only A
     curl -i -X POST localhost:5000/heartbeats -H "Content-Type: application/json" --data-binary "@sample_post.json"
 
     curl -i -X GET 'localhost:5000/heartbeats?start=2016-09-13T13:09:28Z&end=2016-09-13T13:10:28Z' -H "Content-Type: application/json"
+
+## Troubleshooting Dependencies
+
+If you're getting cryptic "Reason: image not found" errors when trying to import `psycopg2`, you might need the following fix.
+
+    export DYLD_FALLBACK_LIBRARY_PATH=$HOME/anaconda3/lib/:$DYLD_FALLBACK_LIBRARY_PATH
+    
+See this [stack overflow question](http://stackoverflow.com/questions/27264574/import-psycopg2-library-not-loaded-libssl-1-0-0-dylib) for details.
