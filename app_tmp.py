@@ -1,5 +1,7 @@
 #! /usr/local/bin/python3
 from flask import Flask, jsonify, make_response, abort, request
+import psycopg2
+import pandas as pd
 import json
 import uuid
 
@@ -9,9 +11,6 @@ app = Flask(__name__)
 
 PG_HOST = "localhost"
 DB_NAME = "saatdb01"
-
-#**** LAST HERE 2/3. Next todo: Make the rr_intervals table as specified below. Try this out! 
-#after that try to implement the GET. Then multi value upload (with different sample.json file)
 
 @app.route('/users/<user_id>/measurements/<event_type>',methods=['POST'])
 def measurement_post_temp(user_id,event_type):
@@ -26,8 +25,8 @@ def measurement_post_temp(user_id,event_type):
         conn = connect_saat()
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO rr_intervals ('user_id,mobile_time,batch_index,value') VALUES ('{},{},{},{}')".format(
-                user_id,mobile_time,batch_index,value))
+            "INSERT INTO rr_intervals (user_id,mobile_time,batch_index,value) VALUES ('{}','{}',{},{})".format(
+                user_id,payload['mobile_time'],payload['batch_index'],payload['value']))
         conn.commit()
     else:
         abort(400,"unknown event type: " + str(event_type))
@@ -43,17 +42,38 @@ def measurement_post_temp(user_id,event_type):
 
 @app.route('/users/<user_id>/measurements/<event_type>',methods=['GET'])
 def measurement_get_temp(user_id,event_type):
+
+    REQUIRED_KEYS = ('start_time','end_time')
+    payload = request.get_json() 
+
     conn = connect_saat()
     cur = conn.cursor()
 
-    json_output = {
+    #*** LAST HERE 3/7: GET is working! make it use ISO datetime format for output. then Then multi value upload (with different sample.json file)
+
+    if event_type == "rr_intervals":
+        for k in REQUIRED_KEYS:
+            if k not in payload:
+                abort(400,'missing required key in request JSON: ' + k)
+        conn = connect_saat()
+        query = "SELECT * FROM rr_intervals WHERE (user_id = '{}' AND mobile_time BETWEEN '{}' and '{}')".format(
+                user_id, payload['start_time'],payload['end_time'])
+        query_df = pd.read_sql_query(query, conn, index_col=['user_id','mobile_time'])#,parse_dates=['mobile_time'])
+#        query_df.set_index('mobile_time',drop=False,inplace=True)
+        print('query_df:')
+        print(query_df)
+    else:
+        abort(400,"unknown event type: " + str(event_type))
+
+    json_response = {
         "method": request.method,
         "user_id": user_id,
         "event_type": event_type,
-        "json": request.json
+        "request json": request.json,
+        "output json": query_df.to_json(orient='split')#orient="records")
     }
-    print(json_output)
-    return make_response(jsonify(json_output), 200)
+    print(json_response)
+    return make_response(jsonify(json_response), 200)
 
 def connect_saat():
     return psycopg2.connect(user="saat", password="CHANGEME",
