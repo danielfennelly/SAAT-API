@@ -1,5 +1,6 @@
 #! /usr/local/bin/python3
 from flask import Flask, jsonify, make_response, abort, request
+import os
 import psycopg2
 import pandas as pd
 import json
@@ -7,7 +8,25 @@ import uuid
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
-# PG_PORT = 8000
+
+try:
+    PG_HOST = os.environ["PG_HOST"]
+except KeyError:
+    PG_HOST = "localhost"
+try:
+    DB_NAME = os.environ["DB_NAME"]
+except KeyError:
+    DB_NAME = "saatdb01"
+try:
+    PG_USER = os.environ["PG_USER"]
+except KeyError:
+    PG_USER = "saat"
+try:
+    PG_PASS = os.environ["PG_PASS"]
+except KeyError:
+    PG_PASS = "CHANGEME"
+
+print(f"Connecting to postgres database: {PG_USER}@{PG_HOST}/{DB_NAME}")
 
 PG_HOST = "localhost"
 DB_NAME = "saatdb01"
@@ -16,7 +35,7 @@ DB_NAME = "saatdb01"
 def measurement_post_temp(user_id,event_type):
 
     REQUIRED_KEYS = ('mobile_time','batch_index','value')
-    payload = request.get_json() 
+    payload = request.get_json()
 
     if event_type == "rr_intervals":
         for k in REQUIRED_KEYS:
@@ -44,7 +63,7 @@ def measurement_post_temp(user_id,event_type):
 def measurement_get_temp(user_id,event_type):
 
     REQUIRED_KEYS = ('start_time','end_time')
-    payload = request.get_json() 
+    payload = request.get_json()
 
     conn = connect_saat()
     cur = conn.cursor()
