@@ -36,12 +36,17 @@ See this [stack overflow question](http://stackoverflow.com/questions/27264574/i
 
 The app loads postgres connection params from environment variables.
 If you'd like to connect to the prod database, find the credentials in
-the SAAT-Internal repo.
+the file `saat-api.sh` in the SAAT-Internal repo.
 
-Pre load into your shell, then run the app:
+Pre load them into your shell:
 
 ```sh
 source saat-api.sh
+```
+
+then run the app:
+
+```sh
 python app.py
 ```
 
