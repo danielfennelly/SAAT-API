@@ -29,5 +29,24 @@ The `curl` commands below demonstrate basic interaction with the API. RR interva
 If you're getting cryptic "Reason: image not found" errors when trying to import `psycopg2`, you might need the following fix.
 
     export DYLD_FALLBACK_LIBRARY_PATH=$HOME/anaconda3/lib/:$DYLD_FALLBACK_LIBRARY_PATH
-    
+
 See this [stack overflow question](http://stackoverflow.com/questions/27264574/import-psycopg2-library-not-loaded-libssl-1-0-0-dylib) for details.
+
+## Connecting to the prod DB
+
+The app loads postgres connection params from environment variables.
+If you'd like to connect to the prod database, find the credentials in
+the SAAT-Internal repo.
+
+Pre load into your shell, then run the app:
+
+```sh
+source saat-api.sh
+python app.py
+```
+
+You can also run it like this:
+
+```sh
+PG_HOST=bla.bla.us-west-2.rds.amazonaws.com PG_DB=YourSweetDB PG_USER=YourCoolUser PG_PASS=Blabla python app.py
+```

@@ -14,9 +14,9 @@ try:
 except KeyError:
     PG_HOST = "localhost"
 try:
-    DB_NAME = os.environ["DB_NAME"]
+    PG_DB = os.environ["PG_DB"]
 except KeyError:
-    DB_NAME = "saatdb01"
+    PG_DB = "saatdb01"
 try:
     PG_USER = os.environ["PG_USER"]
 except KeyError:
@@ -26,7 +26,7 @@ try:
 except KeyError:
     PG_PASS = "CHANGEME"
 
-print(f"Connecting to postgres database: {PG_USER}@{PG_HOST}/{DB_NAME}")
+print(f"Connecting to postgres database: {PG_USER}@{PG_HOST}/{PG_DB}")
 
 @app.route('/users/<user_id>/measurements/<event_type>',methods=['POST'])
 def measurement_post_temp(user_id,event_type):
@@ -93,7 +93,7 @@ def measurement_get_temp(user_id,event_type):
 
 def connect_saat():
     return psycopg2.connect(user=PG_USER, password=PG_PASS,
-                        host=PG_HOST, dbname=DB_NAME)
+                        host=PG_HOST, dbname=PG_DB)
 
 
 # ERROR HANDLERS
