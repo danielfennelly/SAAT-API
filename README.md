@@ -21,3 +21,11 @@ The `curl` commands below demonstrate basic interaction with the API. The only A
 	curl -i -X POST localhost:5000/users/watson/measurements/rr_intervals -H "Content-Type: application/json" --data-binary "@sample_post_rri.json"
 
 	curl -i -X GET localhost:5000/users/watson/measurements/rr_intervals -H "Content-Type: application/json" --data-binary "@sample_get_rri.json"
+
+## Troubleshooting Dependencies
+
+If you're getting cryptic "Reason: image not found" errors when trying to import `psycopg2`, you might need the following fix.
+
+    export DYLD_FALLBACK_LIBRARY_PATH=$HOME/anaconda3/lib/:$DYLD_FALLBACK_LIBRARY_PATH
+    
+See this [stack overflow question](http://stackoverflow.com/questions/27264574/import-psycopg2-library-not-loaded-libssl-1-0-0-dylib) for details.
