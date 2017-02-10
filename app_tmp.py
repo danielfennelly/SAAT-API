@@ -28,9 +28,6 @@ except KeyError:
 
 print(f"Connecting to postgres database: {PG_USER}@{PG_HOST}/{DB_NAME}")
 
-PG_HOST = "localhost"
-DB_NAME = "saatdb01"
-
 @app.route('/users/<user_id>/measurements/<event_type>',methods=['POST'])
 def measurement_post_temp(user_id,event_type):
 
