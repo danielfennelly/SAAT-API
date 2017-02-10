@@ -1,14 +1,16 @@
 # SAAT-API
 
-This repository contains code for a [Flask](http://flask.pocoo.org/docs/0.11/) API server for persisting and fetching heartbeat data. At the present time, this is just stored in an in-memory Python list.
+This repository contains code for a [Flask](http://flask.pocoo.org/docs/0.11/) API server for persisting and fetching heartbeat and subjective psychological data from a Postgres database via the Psycopg2 and Pandas Python packages.
 
 ## Running the server locally
 
-You'll want to [install virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) to manage dependencies. Create a Python 3 virtual environment named `venv` and then use the new environment's `pip` to install dependencies like so:
+You'll first need [Postgres 9.6](https://www.postgresql.org/) installed on your machine. If you are on OSX and use Homebrew, just do `brew update` then `brew install postgres`.
+
+Then you'll want to [install virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) to manage Python dependencies. Create a Python 3.6 virtual environment named `venv` and then use the new environment's `pip` to install dependencies like so:
 
     venv/bin/pip install -r requirements.txt
     
-With Flask installed, the following commands can be used to start up a reloading server in debug mode. Note that if changes are made to the app while running, the memory of previously posted heartbeat data will be lost.
+With Flask installed, the following commands can be used to start up a reloading server in debug mode. 
 
     export FLASK_APP=app.py
     export FLASK_DEBUG=true
