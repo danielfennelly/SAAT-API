@@ -16,9 +16,9 @@ With Flask installed, the following commands can be used to start up a reloading
 
 ## Interacting with the server
 
-The `curl` commands below demonstrate basic interaction with the API. The only API endpoint is at `/heartbeats` and data can be created or fetched with `POST` and `GET` requests respectively. See the `sample_post.json` file for an example.
+The `curl` commands below demonstrate basic interaction with the API. RR interval data can be created or fetched with `POST` and `GET` requests respectively. See the below referenced JSON files for examples.
 
-	curl -i -X POST localhost:5000/users/watson/measurements/rr_intervals -H "Content-Type: application/json" --data-binary "@sample_post_rri.json"
+	curl -i -X POST localhost:5000/users/watson/measurements/rr_intervals -H "Content-Type: application/json" --data-binary "@sample_post_single_rri.json"
 
 	curl -i -X GET localhost:5000/users/watson/measurements/rr_intervals -H "Content-Type: application/json" --data-binary "@sample_get_rri.json"
 
