@@ -1,3 +1,7 @@
 venv
 __pycache__
 *.pyc
+
+
+# Efrem's ignores
+env.sh
