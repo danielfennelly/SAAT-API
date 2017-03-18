@@ -1,15 +1,16 @@
 next steps with SAAT 3/9
 
 now:
+phone able to post single RRI
 update documentation	
-	curl commands
 	install requirements
 	install steps for postgres + psycopg2
-phone able to post single RRI
 phone able to post multi RRI iteratively
 phone able to post psych data
 expand phone interface to include both psych measurements
 random phone alerts to check in with given mean frequency
+create users for everyone
+make cod
 
 very soon:
 include "duration" in spec
@@ -26,3 +27,8 @@ later:
 RRI visualization working on phone for recent data (in memory)
 servable RRI visualization working on SAAT-API for data pulled 
 servable RRI stats per user/time range
+
+
+done:
+update documentation	
+	curl commands
