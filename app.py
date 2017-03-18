@@ -6,12 +6,12 @@ import psycopg2
 import pandas as pd
 import json
 import uuid
-import pprint #for debugging
+import pprint  # for debugging
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
 
-CORS(app) #TODO: proabably turn this off for production
+CORS(app)  # TODO: proabably turn this off for production
 
 try:
     PG_HOST = os.environ["PG_HOST"]
@@ -32,16 +32,19 @@ except KeyError:
 
 db_conn = None
 
-#util to test that the server is being reached and getting data etc
-@app.route('/test/<path>',methods=['GET','POST'])
+# util to test that the server is being reached and getting data etc
+
+
+@app.route('/test/<path>', methods=['GET', 'POST'])
 def test(path):
     print(f'You want path: /test/{path}')
     print(f'Request.data: {request.data}')
-    response = make_response(jsonify({"test":"successful"}), 201)
+    response = make_response(jsonify({"test": "successful"}), 201)
     return response
 
-@app.route('/users/<user_id>/measurements/<event_type>',methods=['POST'])
-def measurement_post(user_id,event_type):
+
+@app.route('/users/<user_id>/measurements/<event_type>', methods=['POST'])
+def measurement_post(user_id, event_type):
 
     print("request.__dict__: \n" + pprint.pformat(request.__dict__, depth=5))
 
@@ -51,9 +54,9 @@ def measurement_post(user_id,event_type):
     payload = request.get_json(force=True)
     if type(payload) != dict:
         print("received payload is not JSON: {}".format(payload))
-        abort(400,"received payload is not JSON: {}".format(payload))
+        abort(400, "received payload is not JSON: {}".format(payload))
 
-    print('post request: '+str(request))
+    print('post request: ' + str(request))
     print('payload: ' + str(payload))
 
     payload['user_id'] = user_id
@@ -61,10 +64,10 @@ def measurement_post(user_id,event_type):
 
     if event_type == "rr_intervals":
         sql_text = payload_to_sql_post_rrinterval(payload)
-    elif event_type in ("activation","pleasantness"):
+    elif event_type in ("activation", "pleasantness"):
         sql_text = payload_to_sql_post_subjective(payload)
     else:
-        abort(400,"unknown event type: " + str(event_type))
+        abort(400, "unknown event type: " + str(event_type))
 
     run_sql(sql_text)
 
@@ -74,46 +77,67 @@ def measurement_post(user_id,event_type):
         "event_type": event_type,
         "payload": payload
     }
-    print('json output:'+str(json_output))
+    print('json output:' + str(json_output))
     response = make_response(jsonify(json_output), 201)
     return response
 
+
 def payload_to_sql_post_rrinterval(payload):
-    REQUIRED_KEYS = ('mobile_time','batch_index','value')
-    validate_payload_keys(payload,REQUIRED_KEYS)
-    sql_text = "INSERT INTO rr_intervals (user_id,mobile_time,batch_index,value) VALUES ('{}','{}',{},{})".format(
-                payload['user_id'],payload['mobile_time'],payload['batch_index'],payload['value'])
+    REQUIRED_KEYS = ('mobile_time', 'batch_index', 'value')
+    validate_payload_keys(payload, REQUIRED_KEYS)
+    sql_text = (
+        "INSERT INTO rr_intervals (user_id,mobile_time,batch_index,value) " +
+        "VALUES ('{}','{}',{},{})"
+        .format(payload['user_id'],
+                payload['mobile_time'],
+                payload['batch_index'],
+                payload['value'])
+    )
     return sql_text
+
 
 def payload_to_sql_post_subjective(payload):
-    REQUIRED_KEYS = ('mobile_time','value')
-    validate_payload_keys(payload,REQUIRED_KEYS)
-    #TODO: make sure below SQL complies with spec
-    sql_text = "INSERT INTO subjective (user_id,mobile_time,event_type,value) VALUES ('{}','{}','{}','{}')".format(
-                payload['user_id'],payload['mobile_time'],payload['event_type'],payload['value'])
+    REQUIRED_KEYS = ('mobile_time', 'value')
+    validate_payload_keys(payload, REQUIRED_KEYS)
+    # TODO: make sure below SQL complies with spec
+    sql_text = (
+        "INSERT INTO subjective (user_id,mobile_time,event_type,value) " +
+        "VALUES ('{}','{}','{}','{}')"
+        .format(payload['user_id'],
+                payload['mobile_time'],
+                payload['event_type'],
+                payload['value'])
+    )
     return sql_text
+
 
 def payload_to_sql_get_rrinterval(payload):
-    REQUIRED_KEYS = ('start_time','end_time')
-    validate_payload_keys(payload,REQUIRED_KEYS)
-    #TODO: create spec for this
-    sql_text = "SELECT * FROM rr_intervals WHERE (user_id = '{}' AND mobile_time BETWEEN '{}' and '{}')".format(
-                payload['user_id'], payload['start_time'],payload['end_time'])
+    REQUIRED_KEYS = ('start_time', 'end_time')
+    validate_payload_keys(payload, REQUIRED_KEYS)
+    # TODO: create spec for this
+    sql_text = (
+        "SELECT * FROM rr_intervals " +
+        "WHERE (user_id = '{}' AND mobile_time BETWEEN '{}' and '{}')"
+        .format(payload['user_id'],
+                payload['start_time'],
+                payload['end_time'])
+    )
     return sql_text
 
 
-def validate_payload_keys(payload,required_keys):
+def validate_payload_keys(payload, required_keys):
     for k in required_keys:
         if k not in payload:
-            abort(400,f"missing required key {k} in posted JSON: {payload}")
+            abort(400, f"missing required key {k} in posted JSON: {payload}")
 
-@app.route('/users/<user_id>/measurements/<event_type>',methods=['GET'])
-def measurement_get(user_id,event_type):
+
+@app.route('/users/<user_id>/measurements/<event_type>', methods=['GET'])
+def measurement_get(user_id, event_type):
     #*** LAST HERE 3/7: GET is working! make it use ISO datetime format for output. then Then multi value upload (with different sample.json file)
 
     payload = request.get_json(force=True)
     if type(payload) != dict:
-        abort(400,"received payload is not JSON: {}".format(payload))
+        abort(400, "received payload is not JSON: {}".format(payload))
 
     payload['user_id'] = user_id
     payload['event_type'] = event_type
@@ -121,9 +145,10 @@ def measurement_get(user_id,event_type):
     if event_type == "rr_intervals":
         sql_text = payload_to_sql_get_rrinterval(payload)
     else:
-        abort(400,"unknown event type: " + str(event_type))
+        abort(400, "unknown event type: " + str(event_type))
 
-    query_df = pd.read_sql_query(sql_text, db_conn, index_col=['user_id','mobile_time'])#,parse_dates=['mobile_time'])
+    query_df = pd.read_sql_query(sql_text, db_conn, index_col=[
+                                 'user_id', 'mobile_time'])  # ,parse_dates=['mobile_time'])
 #        query_df.set_index('mobile_time',drop=False,inplace=True)
     print('query_df: \n' + str(query_df))
 
@@ -132,15 +157,17 @@ def measurement_get(user_id,event_type):
         "user_id": user_id,
         "event_type": event_type,
         "request json": request.json,
-        "output json": query_df.to_json(orient='split')#orient="records")
+        "output json": query_df.to_json(orient='split')  # orient="records")
     }
     print(json_response)
     return make_response(jsonify(json_response), 200)
 
-def connect_saat():    
+
+def connect_saat():
     print(f"Connecting to Postgres database: {PG_USER}@{PG_HOST}/{PG_DB}")
     return psycopg2.connect(user=PG_USER, password=PG_PASS,
-                        host=PG_HOST, dbname=PG_DB)
+                            host=PG_HOST, dbname=PG_DB)
+
 
 def run_sql(sql_text):
     cur = db_conn.cursor()
@@ -149,6 +176,8 @@ def run_sql(sql_text):
     db_conn.commit()
 
 # ERROR HANDLERS
+
+
 @app.errorhandler(400)
 def client_error(error):
     json_error = {
@@ -165,6 +194,7 @@ def unauthorized_error(error):
         "message": error.description
     }
     return make_response(jsonify(json_error), 401)
+
 
 @app.errorhandler(404)
 def not_found(error):
@@ -183,6 +213,7 @@ def invalid_method(error):
     }
     return make_response(jsonify(json_error), 405)
 
+
 @app.errorhandler(409)
 def resource_conflict(error):
     json_error = {
@@ -190,6 +221,7 @@ def resource_conflict(error):
         "message": error.description,
     }
     return make_response(jsonify(json_error), 409)
+
 
 @app.errorhandler(500)
 def unknown_error(error):
@@ -200,5 +232,4 @@ def unknown_error(error):
 if __name__ == "__main__":
     db_conn = connect_saat()
     # app.run(debug=True)
-    app.run(host="0.0.0.0",debug=True)
-
+    app.run(host="0.0.0.0", debug=True)
