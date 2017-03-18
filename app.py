@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-from flask import Flask, jsonify, make_response, abort, request
+from flask import Flask, jsonify, make_response, abort, request, render_template, flash, redirect, url_for, session
 from flask_cors import CORS, cross_origin
 import os
 import psycopg2
@@ -7,34 +7,94 @@ import pandas as pd
 import json
 import uuid
 import pprint  # for debugging
+from flask_login import LoginManager,login_required,login_user,logout_user,fresh_login_required,confirm_login,current_user
+from user import User
+from flask_wtf import FlaskForm
+from wtforms import TextField, PasswordField
+from wtforms.validators import DataRequired
+from flask_wtf.csrf import CSRFProtect
+
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
+app.secret_key = 'SUPER_SECRET'
 
 CORS(app)  # TODO: proabably turn this off for production
+csrf = CSRFProtect()
+csrf.init_app(app)
 
-try:
-    PG_HOST = os.environ["PG_HOST"]
-except KeyError:
-    PG_HOST = "localhost"
-try:
-    PG_DB = os.environ["PG_DB"]
-except KeyError:
-    PG_DB = "saatdb01"
-try:
-    PG_USER = os.environ["PG_USER"]
-except KeyError:
-    PG_USER = "saat"
-try:
-    PG_PASS = os.environ["PG_PASS"]
-except KeyError:
-    PG_PASS = "CHANGEME"
+PG_HOST = os.environ.get("PG_HOST") or "localhost"
+PG_DB = os.environ.get("PG_DB") or "saatdb01"
+PG_USER = os.environ.get("PG_USER") or "saat"
+PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 
 db_conn = None
 
+# TODO: Add other tables and make consistently
+TABLES = (
+    ('users',   '''id SERIAL PRIMARY KEY,
+                   name TEXT NOT NULL,
+                   password TEXT NOT NULL,
+                   active BOOLEAN NOT NULL DEFAULT true,
+                   admin BOOLEAN NOT NULL DEFAULT false,
+                   properties HSTORE NOT NULL DEFAULT ''::hstore,
+                   inserted TIMESTAMP NOT NULL DEFAULT now()'''),
+)
+
+# Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+usersDict = {'1': {'id': 1, 'name': 'daniel', 'password': 'password'}}
+
+class LoginForm(FlaskForm):
+    user = TextField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    def validate(self):
+        user = usersDict['1']
+        # user = db.select_one('users',{'name':self.user.data})
+        print(user)
+        if user is None:
+            self.user.errors.append('Unknown User')
+            return False
+        if self.password.data != user['password']:
+            self.password.errors.append('Invalid Password')
+            return False
+        self.user = User(user)
+        return True
+
+@app.route('/')
+def index():
+    return render_template("index.html",message="Hello",user=current_user)
+
+
+@app.route('/login',methods=('GET','POST',))
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        login_user(form.user,remember=True)
+        flash("Logged In (%s)" % form.user.name,"success")
+        return redirect(request.args.get("next") or url_for("index"))
+    return render_template('login.html',login_form=form)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Logged Out","success")
+    return redirect(url_for("index"))
+
+@login_manager.user_loader
+def load_user(userid):
+    # user = db.select_one('users',{'id':int(userid)})
+    u = usersDict.get(userid)
+    print(u)
+    return User(u) if u else None
+
+
+
 # util to test that the server is being reached and getting data etc
-
-
 @app.route('/test/<path>', methods=['GET', 'POST'])
 def test(path):
     print(f'You want path: /test/{path}')
