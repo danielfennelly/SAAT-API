@@ -172,7 +172,12 @@ def connect_saat():
 def run_sql(sql_text):
     cur = db_conn.cursor()
     #print(f"executing SQL: {sql_text}")
-    cur.execute(sql_text)
+    try:
+        cur.execute(sql_text)
+    except psycopg2.Error as e:
+        db_conn.rollback()
+        print(e.pgerror)
+        abort(400,"SQL error: " + e.pgerror)
     db_conn.commit()
 
 # ERROR HANDLERS
