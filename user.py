@@ -2,21 +2,36 @@ from flask_login import UserMixin
 
 
 class User(UserMixin):
-    def __init__(self,user):
-        self._user = user
-    def __getattr__(self,k):
-        try:
-            return self._user[k]
-        except KeyError:
-            raise AttributeError()
+    usersDict = {
+        1: {'id': 1, 'name': 'daniel', 'password': 'password'},
+        2: {'id': 2, 'name': 'efrem', 'password': 'poop'}
+    }
+
+    current_id = 3
+
+    def __init__(self, id, name, password):
+        self.name = name
+        self.password = password
+        self.id = id
+
+    def __repr__(self):
+        return "<user {}>".format(self.id)
+
+    @classmethod
+    def get(cls, uid):
+        if uid in cls.usersDict:
+            return cls(**cls.usersDict[uid])
+
+    @classmethod
+    def add(cls, name, password):
+        cls.usersDict.update({
+            cls.current_id: {
+                "id": cls.current_id,
+                "name:": name,
+                "password": password
+            }
+        })
+        cls.current_id += 1
+
     def get_id(self):
-        return self._user['id']
-        # return unicode(self._user['id'])
-    # def is_active(self):
-    #     return self.active
-    # def is_anonymous(self):
-    #     return False
-    # def is_authenticated(self):
-    #     return True
-    # def is_admin(self):
-    #     return self.admin
+        return self.id

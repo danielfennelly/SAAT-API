@@ -7,7 +7,7 @@ import pandas as pd
 import json
 import uuid
 import pprint  # for debugging
-from flask_login import LoginManager,login_required,login_user,logout_user,fresh_login_required,confirm_login,current_user
+from flask_login import LoginManager, login_required, login_user, logout_user, fresh_login_required, confirm_login, current_user
 from user import User
 from flask_wtf import FlaskForm
 from wtforms import TextField, PasswordField
@@ -45,11 +45,12 @@ TABLES = (
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
-usersDict = {'1': {'id': 1, 'name': 'daniel', 'password': 'password'}}
+
 
 class LoginForm(FlaskForm):
     user = TextField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
+
     def validate(self):
         user = usersDict['1']
         # user = db.select_one('users',{'name':self.user.data})
@@ -63,27 +64,29 @@ class LoginForm(FlaskForm):
         self.user = User(user)
         return True
 
+
 @app.route('/')
 def index():
-    return render_template("index.html",message="Hello",user=current_user)
+    return render_template("index.html", message="Hello", user=current_user)
 
 
-@app.route('/login',methods=('GET','POST',))
+@app.route('/login', methods=('GET', 'POST',))
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        login_user(form.user,remember=True)
-        flash("Logged In (%s)" % form.user.name,"success")
+        login_user(form.user, remember=True)
+        flash("Logged In (%s)" % form.user.name, "success")
         return redirect(request.args.get("next") or url_for("index"))
-    return render_template('login.html',login_form=form)
+    return render_template('login.html', login_form=form)
 
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash("Logged Out","success")
+    flash("Logged Out", "success")
     return redirect(url_for("index"))
+
 
 @login_manager.user_loader
 def load_user(userid):
@@ -91,7 +94,6 @@ def load_user(userid):
     u = usersDict.get(userid)
     print(u)
     return User(u) if u else None
-
 
 
 # util to test that the server is being reached and getting data etc
@@ -237,7 +239,7 @@ def run_sql(sql_text):
     except psycopg2.Error as e:
         db_conn.rollback()
         print(e.pgerror)
-        abort(400,"SQL error: " + e.pgerror)
+        abort(400, "SQL error: " + e.pgerror)
     db_conn.commit()
 
 # ERROR HANDLERS
