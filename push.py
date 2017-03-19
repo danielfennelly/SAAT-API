@@ -21,6 +21,6 @@ if __name__ == "__main__":
     access_token = get_access_token('access_token')
     url = "https://raw.githubusercontent.com/diracdeltas/beatsbywatson/master/src/watson.jpg"
     if access_token:
-        print(push_link('Testing', 'A Test Message', url, access_token))
+        print(push_link('Change Your Mind', 'Fill out Mood Survey', url, access_token))
     else:
         print('No access token!')

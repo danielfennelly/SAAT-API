@@ -1,4 +1,5 @@
 #! /usr/local/bin/python3
+import flask
 from flask import Flask, jsonify, make_response, abort, request
 from flask_cors import CORS, cross_origin
 import os
@@ -7,34 +8,57 @@ import pandas as pd
 import json
 import uuid
 import pprint  # for debugging
+from datetime import datetime
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
 
 CORS(app)  # TODO: proabably turn this off for production
 
-try:
-    PG_HOST = os.environ["PG_HOST"]
-except KeyError:
-    PG_HOST = "localhost"
-try:
-    PG_DB = os.environ["PG_DB"]
-except KeyError:
-    PG_DB = "saatdb01"
-try:
-    PG_USER = os.environ["PG_USER"]
-except KeyError:
-    PG_USER = "saat"
-try:
-    PG_PASS = os.environ["PG_PASS"]
-except KeyError:
-    PG_PASS = "CHANGEME"
+PG_HOST = os.environ.get("PG_HOST") or "localhost"
+PG_DB = os.environ.get("PG_DB") or "saatdb01"
+PG_USER = os.environ.get("PG_USER") or "saat"
+PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 
 db_conn = None
 
+@app.route('/', methods=['GET'])
+def index():
+    return flask.render_template('index.html')
+
+
+@app.route('/mood', methods=['GET', 'POST'])
+def mood():
+    if request.method == 'POST':
+        return handle_mood_post()
+    else:
+        return present_mood_form()
+
+def present_mood_form():
+    return flask.render_template('mood.html')
+
+def handle_mood_post():
+    activation = parseToInt(request.form.get('activation'))
+    valence = parseToInt(request.form.get('valence'))
+    username = request.form.get('username')
+    if (not username):
+        return flask.redirect(flask.url_for('mood'))
+    else:
+        now = str(datetime.utcnow())
+        cur = db_conn.cursor()
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, now, "valence", valence))
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, now, "activation", activation))
+        db_conn.commit()
+        print(f"(user, activation, valence) = ({username}, {activation}, {valence})")
+        return flask.redirect(flask.url_for('index'))
+
+def parseToInt(arg):
+    try:
+        return int(arg) if arg is not None else None
+    except ValueError:
+        return None
+
 # util to test that the server is being reached and getting data etc
-
-
 @app.route('/test/<path>', methods=['GET', 'POST'])
 def test(path):
     print(f'You want path: /test/{path}')
