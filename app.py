@@ -51,7 +51,10 @@ def mood():
 
 
 def notification():
-    if int(datetime.now().strftime('%H')) < 21 and int(datetime.now().strftime('%H')) > 8:
+    current_hour = int(datetime.utcnow().strftime('%H'))
+    appropriate_time = (current_hour > 16) or (current_hour < 4)
+
+    if appropriate_time:
         print('apscheduler running')
         for user in h_users:
             token = user.get('token')
