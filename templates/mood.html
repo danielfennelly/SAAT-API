@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Subjective State</h1>
+<form action="/mood" method="post">
+<fieldset>
+	<h2>How energized do you feel?</h2>
+	<label for="0">Not at all</label>
+	<input type="radio" name="activation" value="-2">
+	<label for="1">A little</label>
+	<input type="radio" name="activation" value="-1">
+	<label for="1">Moderately</label>
+	<input type="radio" name="activation" value="0">
+	<label for="1">Quite a bit</label>
+	<input type="radio" name="activation" value="1">
+	<label for="1">Very</label>
+	<input type="radio" name="activation" value="2">
+</fieldset>
+<fieldset>
+	<h2>How would you describe your mood?</h2>
+	<label for="0">Very Bad</label>
+	<input type="radio" name="valence" value="-2">
+	<label for="0">Bad</label>
+	<input type="radio" name="valence" value="-1">
+	<label for="0">Neutral</label>
+	<input type="radio" name="valence" value="0">
+	<label for="0">Good</label>
+	<input type="radio" name="valence" value="1">
+	<label for="0">Very Good</label>
+	<input type="radio" name="valence" value="2">
+</fieldset>
+<input type="submit">
+</form>
+{% endblock %}

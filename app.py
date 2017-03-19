@@ -1,4 +1,5 @@
 #! /usr/local/bin/python3
+import flask
 from flask import Flask, jsonify, make_response, abort, request
 from flask_cors import CORS, cross_origin
 import os
@@ -20,9 +21,28 @@ PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 
 db_conn = None
 
+@app.route('/', methods=['GET'])
+def index():
+    return flask.render_template('index.html')
+
+
+@app.route('/mood', methods=['GET', 'POST'])
+def mood():
+    if request.method == 'POST':
+        return handle_mood_post()
+    else:
+        return present_mood_form()
+
+def present_mood_form():
+    return flask.render_template('mood.html')
+
+def handle_mood_post():
+    activation = request.form.get('activation')
+    valence = request.form.get('valence')
+    print(f"(activation, valence) = ({activation}, {valence})")
+    return flask.redirect(flask.url_for('index'))
+
 # util to test that the server is being reached and getting data etc
-
-
 @app.route('/test/<path>', methods=['GET', 'POST'])
 def test(path):
     print(f'You want path: /test/{path}')
