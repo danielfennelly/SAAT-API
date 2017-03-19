@@ -29,12 +29,12 @@ db_conn = None
 
 ##### Temporary ######
 # Only for the hackthon weekend :)
-h_users = [{'name': 'watson', 'token': '1234'},
-           {'name': 'daniel', 'token': '1234'},
-           {'name': 'logan', 'token': '1234'},
-           {'name': 'efrem', 'token': '1234'},
-           {'name': 'kaan', 'token': '1234'},
-           {'name': 'jean', 'token': '1234'}]
+h_users = [{'name': 'watson', 'token': None},
+           {'name': 'daniel', 'token': 'o.Gl5W5Vj15Vrki1PlhsTispABgfVPrBnB'},
+           {'name': 'logan', 'token': None},
+           {'name': 'efrem', 'token': None},
+           {'name': 'kaan', 'token': None},
+           {'name': 'jean', 'token': 'o.y54hitGOHeS8u96cpOWz9tUwxDS1SKwo'}]
 
 
 @app.route('/', methods=['GET'])
