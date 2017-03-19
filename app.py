@@ -37,10 +37,16 @@ def present_mood_form():
     return flask.render_template('mood.html')
 
 def handle_mood_post():
-    activation = request.form.get('activation')
-    valence = request.form.get('valence')
+    activation = parseToInt(request.form.get('activation'))
+    valence = parseToInt(request.form.get('valence'))
     print(f"(activation, valence) = ({activation}, {valence})")
     return flask.redirect(flask.url_for('index'))
+
+def parseToInt(arg):
+    try:
+        return int(arg) if arg is not None else None
+    except ValueError:
+        return None
 
 # util to test that the server is being reached and getting data etc
 @app.route('/test/<path>', methods=['GET', 'POST'])
