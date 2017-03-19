@@ -8,6 +8,7 @@ import pandas as pd
 import json
 import uuid
 import pprint  # for debugging
+from datetime import datetime
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
@@ -39,8 +40,17 @@ def present_mood_form():
 def handle_mood_post():
     activation = parseToInt(request.form.get('activation'))
     valence = parseToInt(request.form.get('valence'))
-    print(f"(activation, valence) = ({activation}, {valence})")
-    return flask.redirect(flask.url_for('index'))
+    username = request.form.get('username')
+    if (not username):
+        return flask.redirect(flask.url_for('mood'))
+    else:
+        now = str(datetime.utcnow())
+        cur = db_conn.cursor()
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, now, "valence", valence))
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, now, "activation", activation))
+        db_conn.commit()
+        print(f"(user, activation, valence) = ({username}, {activation}, {valence})")
+        return flask.redirect(flask.url_for('index'))
 
 def parseToInt(arg):
     try:
