@@ -3,11 +3,9 @@ from flask_login import UserMixin
 
 class User(UserMixin):
     usersDict = {
-        1: {'id': 1, 'name': 'daniel', 'password': 'password'},
-        2: {'id': 2, 'name': 'efrem', 'password': 'poop'}
+        1: {'id': 1, 'name': 'daniel', 'password': ''},
+        2: {'id': 2, 'name': 'efrem', 'password': ''}
     }
-
-    current_id = 3
 
     def __init__(self, id, name, password):
         self.name = name
@@ -19,19 +17,19 @@ class User(UserMixin):
 
     @classmethod
     def get(cls, uid):
+        try:
+            uid = int(uid)
+        except Exception:
+            return
+
         if uid in cls.usersDict:
             return cls(**cls.usersDict[uid])
 
     @classmethod
-    def add(cls, name, password):
-        cls.usersDict.update({
-            cls.current_id: {
-                "id": cls.current_id,
-                "name:": name,
-                "password": password
-            }
-        })
-        cls.current_id += 1
+    def validate(cls, name, password):
+        for u in cls.usersDict.values():
+            if (u["name"] == name) and (u["password"] == password):
+                return cls.get(u["id"])
 
     def get_id(self):
-        return self.id
+        return str(self.id)

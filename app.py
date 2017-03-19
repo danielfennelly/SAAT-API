@@ -48,26 +48,18 @@ login_manager.login_view = "login"
 
 
 class LoginForm(FlaskForm):
-    user = TextField('Username', validators=[DataRequired()])
+    username = TextField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
 
     def validate(self):
-        user = usersDict['1']
-        # user = db.select_one('users',{'name':self.user.data})
-        print(user)
+        user = User.validate(self.username.data, self.password.data)
+        # user = db.select_one('users',{'name':self.username.data})
         if user is None:
-            self.user.errors.append('Unknown User')
+            self.user.errors.append('Unknown User or Bad Password')
             return False
-        if self.password.data != user['password']:
-            self.password.errors.append('Invalid Password')
-            return False
-        self.user = User(user)
+
+        self.user = user
         return True
-
-
-@app.route('/')
-def index():
-    return render_template("index.html", message="Hello", user=current_user)
 
 
 @app.route('/login', methods=('GET', 'POST',))
@@ -90,10 +82,14 @@ def logout():
 
 @login_manager.user_loader
 def load_user(userid):
-    # user = db.select_one('users',{'id':int(userid)})
-    u = usersDict.get(userid)
-    print(u)
-    return User(u) if u else None
+    u = User.get(userid)
+    app.logger.info("logged in {}".format(u))
+    return u if u else None
+
+
+@app.route('/')
+def index():
+    return render_template("index.html", message="Hello", user=current_user)
 
 
 # util to test that the server is being reached and getting data etc
@@ -233,7 +229,7 @@ def connect_saat():
 
 def run_sql(sql_text):
     cur = db_conn.cursor()
-    #print(f"executing SQL: {sql_text}")
+    # print(f"executing SQL: {sql_text}")
     try:
         cur.execute(sql_text)
     except psycopg2.Error as e:
