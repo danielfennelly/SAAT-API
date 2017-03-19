@@ -39,7 +39,7 @@ def user_walker(initial=100, chunk=3):
             out = cur.fetchmany(chunk)
 
 
-def user_walker_date_interval(initial=5, increment=5):
+def user_walker_date_interval(initial=20, increment=5):
     conn = connect_saat()
     with conn.cursor() as cur:
         cur.execute("SELECT mobile_time, value, user_id from rr_intervals " +
@@ -49,7 +49,7 @@ def user_walker_date_interval(initial=5, increment=5):
         while out is not None: # This will stop as soon as it doesn't get a return
             last_dt = out[-1][0]
             cur.execute("SELECT mobile_time, value, user_id from rr_intervals " +
-                        "mobile_time > %s ORDER BY mobile_time ASC " +
+                        "WHERE mobile_time > %s ORDER BY mobile_time ASC " +
                         "LIMIT %s", (last_dt, 2))
             out = cur.fetchall()
             yield out
