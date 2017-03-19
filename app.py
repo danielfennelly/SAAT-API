@@ -9,9 +9,14 @@ import json
 import uuid
 import pprint  # for debugging
 from datetime import datetime
+from push import push_link
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
+app.secret_key = 'SUPER_SECRET'
+scheduler = BackgroundScheduler()
 
 CORS(app)  # TODO: proabably turn this off for production
 
@@ -21,6 +26,16 @@ PG_USER = os.environ.get("PG_USER") or "saat"
 PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 
 db_conn = None
+
+##### Temporary ######
+# Only for the hackthon weekend :)
+h_users = [{'name': 'watson', 'token': None},
+           {'name': 'daniel', 'token': 'o.Gl5W5Vj15Vrki1PlhsTispABgfVPrBnB'},
+           {'name': 'logan', 'token': None},
+           {'name': 'efrem', 'token': None},
+           {'name': 'kaan', 'token': None},
+           {'name': 'jean', 'token': 'o.y54hitGOHeS8u96cpOWz9tUwxDS1SKwo'}]
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -33,6 +48,36 @@ def mood():
         return handle_mood_post()
     else:
         return present_mood_form()
+
+
+def notification():
+    if int(datetime.now().strftime('%H')) < 21 and int(datetime.now().strftime('%H')) > 8:
+        print('apscheduler running')
+        for user in h_users:
+            token = user.get('token')
+            name = user.get('name')[0].upper() + user.get('name')[1:]
+            title = 'Hello ' + name + ','
+            body = 'How are you feeling?'
+            url = 'http://35.167.145.159:5000/mood'  # !! replace with link to survey
+            if token:
+                push_link(title, body, url, token)
+
+
+scheduler.add_job(notification, 'interval', minutes=15)
+scheduler.start()
+
+
+@app.route('/start', methods=['POST'])  # !! needs a UI
+def resume():
+    scheduler.resume()
+    return flask.redirect('/')
+
+
+@app.route('/pause', methods=['POST'])  # !! needs a UI
+def pause():
+    scheduler.pause()
+    return flask.redirect('/')
+
 
 def present_mood_form():
     return flask.render_template('mood.html')
@@ -260,5 +305,4 @@ def unknown_error(error):
 
 if __name__ == "__main__":
     db_conn = connect_saat()
-    # app.run(debug=True)
     app.run(host="0.0.0.0", debug=True)
