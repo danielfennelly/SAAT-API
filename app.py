@@ -89,10 +89,10 @@ def handle_mood_post():
     if (not username):
         return flask.redirect(flask.url_for('mood'))
     else:
-        now = str(datetime.utcnow())
+        now = datetime.utcnow()
         cur = db_conn.cursor()
-        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, now, "pleasantness", pleasantness))
-        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, now, "activation", activation))
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now), "pleasantness", valence))
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now + timedelta(milliseconds=1)), "activation", activation))
         db_conn.commit()
         print(f"(user, activation, pleasantness) = ({username}, {activation}, {pleasantness})")
         return flask.redirect(flask.url_for('index'))
