@@ -58,7 +58,7 @@ def notification():
             name = user.get('name')[0].upper() + user.get('name')[1:]
             title = 'Hello ' + name + ','
             body = 'How are you feeling?'
-            url = 'link.com'  # !! replace with link to survey
+            url = 'https://35.167.145.159/mood'  # !! replace with link to survey
             if token:
                 push_link(title, body, url, token)
 
