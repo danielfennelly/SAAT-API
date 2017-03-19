@@ -3,7 +3,7 @@ from datetime import datetime
 from bokeh.layouts import layout, Spacer
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import figure, curdoc
-from db import user_walker_date_interval
+from db import user_walker_date_interval, user_walker_realtime_mode
 from collections import defaultdict
 
 # RUN bokeh serve --show bokeh_dashboard.py
@@ -34,11 +34,17 @@ def calc_alphas(column):
     return alphas
 
 user_colors = {
-    'watson': "LimeGreen",
+    'jean': "DarkCyan",
+    'daniel': "LimeGreen",
+    'watson': "Red",
+    'logan': "RoyalBlue",
+    'efrem': "DarkOrchid",
+    'kaan': "DarkOrange",
 }
 
 
-stream = user_walker_date_interval()
+# stream = user_walker_date_interval()
+stream = user_walker_realtime_mode(500)
 
 start_x = defaultdict(list)
 start_y = defaultdict(list)
@@ -49,16 +55,22 @@ for time, rri, user in next(stream):
 
 user_sources = {}
 user_source_masks = {}
-for user in start_x.keys():
-    user_sources[user] = ColumnDataSource(data=dict(x=start_x[user],
-                                                    y=start_y[user]))
-    user_source_masks[user] = ColumnDataSource(data=dict(prev=start_y[user][-11:-1],
-                                                         cur=start_y[
-                                                             user][-10:],
-                                                         alphas=calc_alphas(start_y[user][-10:])))
+for user in user_colors.keys():
+    if user not in start_x.keys():
+        user_sources[user] = ColumnDataSource(data=dict(x=[], y=[]))
+        user_source_masks[user] = ColumnDataSource(data=dict(prev=[], 
+                                                            cur=[],
+                                                            alphas=[]))
+    else:
+        user_sources[user] = ColumnDataSource(data=dict(x=start_x[user],
+                                                        y=start_y[user]))
+        user_source_masks[user] = ColumnDataSource(data=dict(prev=start_y[user][-11:-1],
+                                                             cur=start_y[
+                                                                 user][-10:],
+                                                             alphas=calc_alphas(start_y[user][-10:])))
     rri_plot.line(x='x', y='y', source=user_sources[user],
                   color=user_colors[user],
-                  legend=user)
+                  legend=user, line_width=2)
     diag_plot.circle(x='prev', y='cur', alpha='alphas',
                      source=user_source_masks[user],
                      color=user_colors[user],
@@ -70,23 +82,28 @@ doc = curdoc()
 
 
 def update():
+    new_data = next(stream)
+    if new_data is None:
+        return
     new_x = defaultdict(list)
     new_y = defaultdict(list)
-    for time, rri, user in next(stream):
+    for time, rri, user in new_data:
         new_x[user].append(time)
         new_y[user].append(rri)
     for user in new_x.keys():
+        if user not in user_colors.keys():
+            continue
         user_sources[user].stream(
-            dict(x=new_x[user], y=new_y[user]), rollover=1000)
+            dict(x=new_x[user], y=new_y[user]), rollover=10000)
         num_new = len(new_y[user])
         prev = user_source_masks[user].data['cur'][-num_new - 1:-1]
         user_source_masks[user].stream(
             dict(prev=prev, cur=new_y[user], alphas=[1] * num_new), rollover=10)
-    user_source_masks[user].data['alphas'] = calc_alphas(
-        user_source_masks[user].data['cur'])
+        user_source_masks[user].data['alphas'] = calc_alphas(
+            user_source_masks[user].data['cur'])
 
 
-doc.add_periodic_callback(update, 1000)
+doc.add_periodic_callback(update, 2000)
 
 curdoc().add_root(layout([[rri_plot], [Spacer(), diag_plot]],
                          sizing_mode='stretch_both'))
