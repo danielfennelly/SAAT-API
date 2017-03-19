@@ -1,7 +1,10 @@
 venv
 __pycache__
 *.pyc
-
+access_token
 
 # Efrem's ignores
 env.sh
+
+# Jean's ignore
+env3/

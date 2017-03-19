@@ -1,4 +1,5 @@
 #! /usr/local/bin/python3
+import flask
 from flask import Flask, jsonify, make_response, abort, request
 from flask_cors import CORS, cross_origin
 import os
@@ -7,34 +8,105 @@ import pandas as pd
 import json
 import uuid
 import pprint  # for debugging
+from datetime import datetime, timedelta
+from push import push_link
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 # Global app constant (for REST API definition)
 app = Flask(__name__)
+app.secret_key = 'SUPER_SECRET'
+scheduler = BackgroundScheduler()
 
 CORS(app)  # TODO: proabably turn this off for production
 
-try:
-    PG_HOST = os.environ["PG_HOST"]
-except KeyError:
-    PG_HOST = "localhost"
-try:
-    PG_DB = os.environ["PG_DB"]
-except KeyError:
-    PG_DB = "saatdb01"
-try:
-    PG_USER = os.environ["PG_USER"]
-except KeyError:
-    PG_USER = "saat"
-try:
-    PG_PASS = os.environ["PG_PASS"]
-except KeyError:
-    PG_PASS = "CHANGEME"
+PG_HOST = os.environ.get("PG_HOST") or "localhost"
+PG_DB = os.environ.get("PG_DB") or "saatdb01"
+PG_USER = os.environ.get("PG_USER") or "saat"
+PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 
 db_conn = None
 
+##### Temporary ######
+# Only for the hackthon weekend :)
+h_users = [{'name': 'watson', 'token': None},
+           {'name': 'daniel', 'token': 'o.Gl5W5Vj15Vrki1PlhsTispABgfVPrBnB'},
+           {'name': 'logan', 'token': None},
+           {'name': 'efrem', 'token': None},
+           {'name': 'kaan', 'token': None},
+           {'name': 'jean', 'token': 'o.y54hitGOHeS8u96cpOWz9tUwxDS1SKwo'}]
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return flask.render_template('index.html')
+
+
+@app.route('/mood', methods=['GET', 'POST'])
+def mood():
+    if request.method == 'POST':
+        return handle_mood_post()
+    else:
+        return present_mood_form()
+
+
+def notification():
+    current_hour = int(datetime.utcnow().strftime('%H'))
+    appropriate_time = (current_hour > 16) or (current_hour < 4)
+
+    if appropriate_time:
+        print('apscheduler running')
+        for user in h_users:
+            token = user.get('token')
+            name = user.get('name')[0].upper() + user.get('name')[1:]
+            title = 'Hello ' + name + ','
+            body = 'How are you feeling?'
+            url = 'http://35.167.145.159:5000/mood'  # !! replace with link to survey
+            if token:
+                push_link(title, body, url, token)
+
+
+scheduler.add_job(notification, 'interval', minutes=15)
+scheduler.start()
+
+
+@app.route('/start', methods=['POST'])  # !! needs a UI
+def resume():
+    scheduler.resume()
+    return flask.redirect('/')
+
+
+@app.route('/pause', methods=['POST'])  # !! needs a UI
+def pause():
+    scheduler.pause()
+    return flask.redirect('/')
+
+
+def present_mood_form():
+    return flask.render_template('mood.html')
+
+def handle_mood_post():
+    activation = parseToInt(request.form.get('activation'))
+    pleasantness = parseToInt(request.form.get('pleasantness'))
+    username = request.form.get('username')
+    if (not username):
+        return flask.redirect(flask.url_for('mood'))
+    else:
+        now = datetime.utcnow()
+        cur = db_conn.cursor()
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now), "pleasantness", pleasantness))
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now + timedelta(milliseconds=1)), "activation", activation))
+        db_conn.commit()
+        print(f"(user, activation, pleasantness) = ({username}, {activation}, {pleasantness})")
+        return flask.redirect(flask.url_for('index'))
+
+def parseToInt(arg):
+    try:
+        return int(arg) if arg is not None else None
+    except ValueError:
+        return None
+
 # util to test that the server is being reached and getting data etc
-
-
 @app.route('/test/<path>', methods=['GET', 'POST'])
 def test(path):
     print(f'You want path: /test/{path}')
@@ -236,5 +308,4 @@ def unknown_error(error):
 
 if __name__ == "__main__":
     db_conn = connect_saat()
-    # app.run(debug=True)
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0")
