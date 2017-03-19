@@ -78,6 +78,7 @@ for user in user_colors.keys():
 
 diag_plot.line(x=(0, 1200), y=(0, 1200),
                line_color='grey', line_dash='dotted')
+rri_plot.legend.location = "bottom_left"
 doc = curdoc()
 
 
@@ -103,7 +104,7 @@ def update():
             user_source_masks[user].data['cur'])
 
 
-doc.add_periodic_callback(update, 2000)
+doc.add_periodic_callback(update, 500)
 
 curdoc().add_root(layout([[rri_plot], [Spacer(), diag_plot]],
                          sizing_mode='stretch_both'))
