@@ -3,7 +3,7 @@ from datetime import datetime
 from bokeh.layouts import layout, Spacer
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import figure, curdoc
-from db import user_walker
+from db import user_walker_date_interval
 
 # RUN bokeh serve --show bokeh_dashboard.py
 
@@ -33,7 +33,7 @@ def calc_alphas(column):
   return alphas
 
 
-stream = user_walker()
+stream = user_walker_date_interval()
 
 start_x, start_y = zip(*next(stream))
 
