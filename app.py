@@ -91,7 +91,7 @@ def handle_mood_post():
     else:
         now = datetime.utcnow()
         cur = db_conn.cursor()
-        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now), "pleasantness", valence))
+        cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now), "pleasantness", pleasantness))
         cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now + timedelta(milliseconds=1)), "activation", activation))
         db_conn.commit()
         print(f"(user, activation, pleasantness) = ({username}, {activation}, {pleasantness})")
