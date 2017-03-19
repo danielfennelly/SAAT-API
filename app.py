@@ -308,4 +308,4 @@ def unknown_error(error):
 
 if __name__ == "__main__":
     db_conn = connect_saat()
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0")
