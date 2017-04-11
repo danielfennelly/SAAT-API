@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from push import push_link
 from apscheduler.schedulers.background import BackgroundScheduler
 
-
 # Global app constant (for REST API definition)
 app = Flask(__name__)
 app.secret_key = 'SUPER_SECRET'
@@ -40,7 +39,6 @@ h_users = [{'name': 'watson', 'token': None},
 @app.route('/', methods=['GET'])
 def index():
     return flask.render_template('index.html')
-
 
 @app.route('/mood', methods=['GET', 'POST'])
 def mood():
@@ -118,7 +116,7 @@ def test(path):
 @app.route('/users/<user_id>/measurements/<event_type>', methods=['POST'])
 def measurement_post(user_id, event_type):
 
-    print("request.__dict__: \n" + pprint.pformat(request.__dict__, depth=5))
+    #print("request.__dict__: \n" + pprint.pformat(request.__dict__, depth=5)) #very verbose debug printout
 
     # if not request.is_json:
     #     print('request posted to /users/<user_id>/measurements/<event_type> is not JSON. request data: ' + str(request.data))
