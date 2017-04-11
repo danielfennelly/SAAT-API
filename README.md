@@ -29,6 +29,13 @@ With Flask installed, the following commands can be used to start up a reloading
     export PG_USER=$(whoami)
     flask run
 
+You will need to create a local instances folder with a configuration like so:
+
+    mkdir instances
+    cp config.py instances
+    
+Edit the values in config.py to reflect your local database credentials.
+
 ## Interacting with the server
 
 The `curl` commands below demonstrate basic interaction with the API. RR interval data can be created or fetched with `POST` and `GET` requests respectively. See the below referenced JSON files for examples.
