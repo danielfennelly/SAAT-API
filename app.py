@@ -14,16 +14,16 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 
 # Global app constant (for REST API definition)
-app = Flask(__name__)
-app.secret_key = 'SUPER_SECRET'
+app = Flask(__name__, instance_relative_config = True)
+# Other app config stuff
+#
+# Seeeekrit stuff here
+app.config.from_pyfile('config.py')
+
+app.secret_key = app.config['secret_key']
 scheduler = BackgroundScheduler()
 
 CORS(app)  # TODO: proabably turn this off for production
-
-PG_HOST = os.environ.get("PG_HOST") or "localhost"
-PG_DB = os.environ.get("PG_DB") or "saatdb01"
-PG_USER = os.environ.get("PG_USER") or "saat"
-PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 
 db_conn = None
 
@@ -152,55 +152,6 @@ def measurement_post(user_id, event_type):
     print('json output:' + str(json_output))
     response = make_response(jsonify(json_output), 201)
     return response
-
-
-def payload_to_sql_post_rrinterval(payload):
-    REQUIRED_KEYS = ('mobile_time', 'batch_index', 'value')
-    validate_payload_keys(payload, REQUIRED_KEYS)
-    sql_text = (
-        "INSERT INTO rr_intervals (user_id,mobile_time,batch_index,value) " +
-        "VALUES ('{}','{}',{},{})"
-        .format(payload['user_id'],
-                payload['mobile_time'],
-                payload['batch_index'],
-                payload['value'])
-    )
-    return sql_text
-
-
-def payload_to_sql_post_subjective(payload):
-    REQUIRED_KEYS = ('mobile_time', 'value')
-    validate_payload_keys(payload, REQUIRED_KEYS)
-    # TODO: make sure below SQL complies with spec
-    sql_text = (
-        "INSERT INTO subjective (user_id,mobile_time,event_type,value) " +
-        "VALUES ('{}','{}','{}','{}')"
-        .format(payload['user_id'],
-                payload['mobile_time'],
-                payload['event_type'],
-                payload['value'])
-    )
-    return sql_text
-
-
-def payload_to_sql_get_rrinterval(payload):
-    REQUIRED_KEYS = ('start_time', 'end_time')
-    validate_payload_keys(payload, REQUIRED_KEYS)
-    # TODO: create spec for this
-    sql_text = (
-        "SELECT * FROM rr_intervals " +
-        "WHERE (user_id = '{}' AND mobile_time BETWEEN '{}' and '{}')"
-        .format(payload['user_id'],
-                payload['start_time'],
-                payload['end_time'])
-    )
-    return sql_text
-
-
-def validate_payload_keys(payload, required_keys):
-    for k in required_keys:
-        if k not in payload:
-            abort(400, f"missing required key {k} in posted JSON: {payload}")
 
 
 @app.route('/users/<user_id>/measurements/<event_type>', methods=['GET'])
