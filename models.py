@@ -66,3 +66,13 @@ def run_sql(sql_text):
         print(e.pgerror)
         abort(400,"SQL error: " + e.pgerror)
     db_conn.commit()
+
+
+schema_post_rri = {
+    "type":"object",
+    "properties": {
+        "mobile_time":"date-time",
+        "batch_index":"integer",
+        "value":"integer",
+    }
+}

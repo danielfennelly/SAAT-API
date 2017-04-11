@@ -7,19 +7,19 @@ from itertools import cycle
 try:
     PG_HOST = os.environ["PG_HOST"]
 except KeyError:
-    PG_HOST = "tf-201611180437251236751897ul.chhanozbpeca.us-west-2.rds.amazonaws.com"
+    PG_HOST = ""
 try:
     PG_DB = os.environ["PG_DB"]
 except KeyError:
-    PG_DB = "saatdb01"
+    PG_DB = ""
 try:
     PG_USER = os.environ["PG_USER"]
 except KeyError:
-    PG_USER = "saat"
+    PG_USER = ""
 try:
     PG_PASS = os.environ["PG_PASS"]
 except KeyError:
-    PG_PASS = "CHANGEME"
+    PG_PASS = ""
 
 
 def connect_saat():
@@ -28,11 +28,13 @@ def connect_saat():
                             host=PG_HOST, dbname=PG_DB)
 
 
-def user_walker(initial=100, chunk=3):
+def user_walker(initial=100, chunk=10, skip=0):
     conn = connect_saat()
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT mobile_time, value from rr_intervals WHERE user_id = 'watson' ORDER BY mobile_time ASC")
+            "SELECT mobile_time, value, user_id from rr_intervals ORDER BY mobile_time ASC")
+        if skip > 0:
+            cur.fetchmany(skip)
         yield cur.fetchmany(initial)
         out = cur.fetchmany(chunk)
         while out is not None:
@@ -40,7 +42,7 @@ def user_walker(initial=100, chunk=3):
             out = cur.fetchmany(chunk)
 
 
-def user_walker_date_interval(initial=20, increment=5):
+def user_walker_date_interval(initial=200, increment=10):
     conn = connect_saat()
     with conn.cursor() as cur:
         cur.execute("SELECT mobile_time, value, user_id from rr_intervals " +

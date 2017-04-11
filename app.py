@@ -18,9 +18,9 @@ app = Flask(__name__, instance_relative_config = True)
 # Other app config stuff
 #
 # Seeeekrit stuff here
+app.config.from_object('config')
 app.config.from_pyfile('config.py')
-
-app.secret_key = app.config['secret_key']
+# app.secret_key = app.config['SECRET_KEY']
 scheduler = BackgroundScheduler()
 
 CORS(app)  # TODO: proabably turn this off for production
@@ -240,5 +240,5 @@ def unknown_error(error):
         500)
 
 if __name__ == "__main__":
-    db_conn = connect_saat()
+    # db_conn = connect_saat()
     app.run(host="0.0.0.0")
