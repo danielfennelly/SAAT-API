@@ -93,13 +93,14 @@ def register():
     if len(cur.fetchall()) == 0:
         SQL_EXP = "INSERT INTO users (id, name, password, prompt_me) VALUES ('{0}', '{1}', '{2}', '{3}')".format(new_user.id,
                         new_user.name, new_user.password, int(new_user.prompt_me))
-        print(SQL_EXP)
 
         cur.execute(SQL_EXP)
         db_conn.commit()
+        response = make_response(jsonify({"message": "user successfully created"}), 201)
+        return response
     else:
-        print("REPEAT USER")
-
+        abort(409, "User with that name is already created")
+        
 def present_mood_form():
     return flask.render_template('mood.html')
 
