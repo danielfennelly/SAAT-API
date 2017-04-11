@@ -1,4 +1,5 @@
-from flask_login import UserMixin
+from flask_user import UserMixin
+import hashlib
 
 
 class User(UserMixin):
@@ -9,7 +10,7 @@ class User(UserMixin):
 
     def __init__(self, id, name, password, prompt_me=True):
         self.name = name
-        self.password = password
+        self.password = hashlib.sha256(password.encode('utf-8')).hexdigest()
         self.id = id
         self.prompt_me = prompt_me  # change this later to user preference
 

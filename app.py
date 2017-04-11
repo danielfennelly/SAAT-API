@@ -11,6 +11,7 @@ import pprint  # for debugging
 from datetime import datetime, timedelta
 from push import push_link
 from apscheduler.schedulers.background import BackgroundScheduler
+from user import User
 
 
 # Global app constant (for REST API definition)
@@ -28,7 +29,7 @@ PG_PASS = os.environ.get("PG_PASS") or "CHANGEME"
 db_conn = None
 
 ##### Temporary ######
-# Only for the hackthon weekend :)
+# TODO: Only for the hackthon weekend :)
 h_users = [{'name': 'watson', 'token': None},
            {'name': 'daniel', 'token': 'o.Gl5W5Vj15Vrki1PlhsTispABgfVPrBnB'},
            {'name': 'logan', 'token': None},
@@ -81,6 +82,23 @@ def pause():
     scheduler.pause()
     return flask.redirect('/')
 
+
+@app.route('/users/register', methods=["POST"])
+def register():
+    body = request.get_json(force=True)
+    new_user = User(body["id"], body["name"], body["password"], body["prompt_me"])
+    SQL_EXP_ONE = "SELECT id FROM users WHERE name = '{}'".format(new_user.name)
+    cur = db_conn.cursor()
+    cur.execute(SQL_EXP_ONE)
+    if len(cur.fetchall()) == 0:
+        SQL_EXP = "INSERT INTO users (id, name, password, prompt_me) VALUES ('{0}', '{1}', '{2}', '{3}')".format(new_user.id,
+                        new_user.name, new_user.password, int(new_user.prompt_me))
+        print(SQL_EXP)
+
+        cur.execute(SQL_EXP)
+        db_conn.commit()
+    else:
+        print("REPEAT USER")
 
 def present_mood_form():
     return flask.render_template('mood.html')
