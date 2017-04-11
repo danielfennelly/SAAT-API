@@ -8,3 +8,6 @@ env.sh
 
 # Jean's ignore
 env3/
+
+# instance folder ignore
+instance/
