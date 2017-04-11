@@ -1,7 +1,4 @@
-PG_HOST = app.config["PG_HOST"]
-PG_DB = app.config["PG_DB"]
-PG_USER = app.config["PG_USER"]
-PG_PASS = app.config["PG_PASS"]
+import psycopg2
 
 def payload_to_sql_post_rrinterval(payload):
     REQUIRED_KEYS = ('mobile_time', 'batch_index', 'value')
@@ -48,12 +45,19 @@ def payload_to_sql_get_rrinterval(payload):
 def validate_payload_keys(payload, required_keys):
     for k in required_keys:
         if k not in payload:
-            abort(400, f"missing required key {k} in posted JSON: {payload}")
+            raise KeyError(f"missing required key {k} in posted JSON: {payload}")
 
-def connect_saat():
+def connect_saat(config):
+    PG_HOST = config["PG_HOST"]
+    PG_DB = config["PG_DB"]
+    PG_USER = config["PG_USER"]
+    PG_PASS = config["PG_PASS"]
+
     print(f"Connecting to Postgres database: {PG_USER}@{PG_HOST}/{PG_DB}")
-    return psycopg2.connect(user=PG_USER, password=PG_PASS,
+    global db_conn
+    db_conn = psycopg2.connect(user=PG_USER, password=PG_PASS,
                             host=PG_HOST, dbname=PG_DB)
+    return db_conn
 
 
 def run_sql(sql_text):
@@ -73,6 +77,6 @@ schema_post_rri = {
     "properties": {
         "mobile_time":"date-time",
         "batch_index":"integer",
-        "value":"integer",
+        "value":"integer"
     }
 }

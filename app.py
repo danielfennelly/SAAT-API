@@ -3,7 +3,6 @@ import flask
 from flask import Flask, jsonify, make_response, abort, request
 from flask_cors import CORS, cross_origin
 import os
-import psycopg2
 import pandas as pd
 import json
 import uuid
@@ -11,6 +10,7 @@ import pprint  # for debugging
 from datetime import datetime, timedelta
 from push import push_link
 from apscheduler.schedulers.background import BackgroundScheduler
+from models import connect_saat, payload_to_sql_post_rrinterval, payload_to_sql_post_subjective, run_sql
 
 
 # Global app constant (for REST API definition)
@@ -154,6 +154,7 @@ def measurement_post(user_id, event_type):
     return response
 
 
+#TODO: This does not make sense
 @app.route('/users/<user_id>/measurements/<event_type>', methods=['GET'])
 def measurement_get(user_id, event_type):
     #*** LAST HERE 3/7: GET is working! make it use ISO datetime format for output. then Then multi value upload (with different sample.json file)
@@ -240,5 +241,5 @@ def unknown_error(error):
         500)
 
 if __name__ == "__main__":
-    # db_conn = connect_saat()
+    db_conn = connect_saat(app.config)
     app.run(host="0.0.0.0")
