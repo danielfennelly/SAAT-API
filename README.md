@@ -6,6 +6,18 @@ This repository contains code for a [Flask](http://flask.pocoo.org/docs/0.11/) A
 
 You'll first need [Postgres 9.6](https://www.postgresql.org/) installed on your machine. If you are on OSX and use Homebrew, just do `brew update` then `brew install postgres`.
 
+Next create a postgres database and load the schema:
+```sh
+# Connect to management database to enter the psql prompt
+psql postgres
+# Create the database
+create database saatdb01;
+# Disconnect to leave psql
+\q
+# Load the schema
+psql -d "postgresql://@localhost:5432/saatdb01" < schema.sql
+```
+
 Then you'll want to [install virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/) to manage Python dependencies. Create a Python 3.6 virtual environment named `venv` and then use the new environment's `pip` to install dependencies like so:
 
     venv/bin/pip install -r requirements.txt
@@ -14,6 +26,7 @@ With Flask installed, the following commands can be used to start up a reloading
 
     export FLASK_APP=app.py
     export FLASK_DEBUG=true
+    export PG_USER=$(whoami)
     flask run
 
 ## Interacting with the server
