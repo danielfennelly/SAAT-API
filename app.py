@@ -185,24 +185,6 @@ def measurement_get(user_id, event_type):
     print(json_response)
     return make_response(jsonify(json_response), 200)
 
-
-def connect_saat():
-    print(f"Connecting to Postgres database: {PG_USER}@{PG_HOST}/{PG_DB}")
-    return psycopg2.connect(user=PG_USER, password=PG_PASS,
-                            host=PG_HOST, dbname=PG_DB)
-
-
-def run_sql(sql_text):
-    cur = db_conn.cursor()
-    #print(f"executing SQL: {sql_text}")
-    try:
-        cur.execute(sql_text)
-    except psycopg2.Error as e:
-        db_conn.rollback()
-        print(e.pgerror)
-        abort(400,"SQL error: " + e.pgerror)
-    db_conn.commit()
-
 # ERROR HANDLERS
 
 

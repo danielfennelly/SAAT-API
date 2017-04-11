@@ -8,8 +8,7 @@ def payload_to_sql_post_rrinterval(payload):
     validate_payload_keys(payload, REQUIRED_KEYS)
     sql_text = (
         "INSERT INTO rr_intervals (user_id,mobile_time,batch_index,value) " +
-        "VALUES ('{}','{}',{},{})"
-        .format(payload['user_id'],
+        "VALUES (%s, %s, %s, %s)", (payload['user_id'],
                 payload['mobile_time'],
                 payload['batch_index'],
                 payload['value'])
@@ -23,8 +22,8 @@ def payload_to_sql_post_subjective(payload):
     # TODO: make sure below SQL complies with spec
     sql_text = (
         "INSERT INTO subjective (user_id,mobile_time,event_type,value) " +
-        "VALUES ('{}','{}','{}','{}')"
-        .format(payload['user_id'],
+        "VALUES (%s,%s,%s,%s)",
+        (payload['user_id'],
                 payload['mobile_time'],
                 payload['event_type'],
                 payload['value'])
@@ -38,8 +37,8 @@ def payload_to_sql_get_rrinterval(payload):
     # TODO: create spec for this
     sql_text = (
         "SELECT * FROM rr_intervals " +
-        "WHERE (user_id = '{}' AND mobile_time BETWEEN '{}' and '{}')"
-        .format(payload['user_id'],
+        "WHERE (user_id = %s AND mobile_time BETWEEN %s and %s)",
+        (payload['user_id'],
                 payload['start_time'],
                 payload['end_time'])
     )
@@ -61,7 +60,7 @@ def run_sql(sql_text):
     cur = db_conn.cursor()
     #print(f"executing SQL: {sql_text}")
     try:
-        cur.execute(sql_text)
+        cur.execute(*sql_text)
     except psycopg2.Error as e:
         db_conn.rollback()
         print(e.pgerror)
