@@ -54,13 +54,12 @@ def connect_saat(config):
     PG_PASS = config["PG_PASS"]
 
     print(f"Connecting to Postgres database: {PG_USER}@{PG_HOST}/{PG_DB}")
-    global db_conn
     db_conn = psycopg2.connect(user=PG_USER, password=PG_PASS,
                             host=PG_HOST, dbname=PG_DB)
     return db_conn
 
 
-def run_sql(sql_text):
+def run_sql(sql_text, db_conn):
     cur = db_conn.cursor()
     #print(f"executing SQL: {sql_text}")
     try:

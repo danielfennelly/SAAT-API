@@ -1,6 +1,6 @@
 #! /usr/local/bin/python3
 import flask
-from flask import Flask, jsonify, make_response, abort, request
+from flask import Flask, jsonify, make_response, abort, request, g
 from flask_cors import CORS, cross_origin
 import os
 import pandas as pd
@@ -25,7 +25,7 @@ scheduler = BackgroundScheduler()
 
 CORS(app)  # TODO: proabably turn this off for production
 
-db_conn = None
+# db_conn = None
 
 ##### Temporary ######
 # Only for the hackthon weekend :)
@@ -93,6 +93,7 @@ def handle_mood_post():
         return flask.redirect(flask.url_for('mood'))
     else:
         now = datetime.utcnow()
+        db_conn = get_db()
         cur = db_conn.cursor()
         cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now), "pleasantness", pleasantness))
         cur.execute("INSERT INTO subjective (user_id, mobile_time, event_type, value) VALUES (%s, %s, %s, %s)", (username, str(now + timedelta(milliseconds=1)), "activation", activation))
@@ -141,7 +142,7 @@ def measurement_post(user_id, event_type):
     else:
         abort(400, "unknown event type: " + str(event_type))
 
-    run_sql(sql_text)
+    run_sql(sql_text, get_db())
 
     json_output = {
         "method": request.method,
@@ -240,6 +241,20 @@ def unknown_error(error):
         jsonify({"message": "Unknown internal server error."}),
         500)
 
+
+# More idiomatic db connection handling: http://flask.pocoo.org/docs/0.12/tutorial/dbcon/#tutorial-dbcon
+def get_db(config=app.config):
+    if not hasattr(g, 'db_conn'):
+        g.db_conn = connect_saat(config)
+    return g.db_conn
+
+@app.teardown_appcontext
+def close_db(error):
+    if hasattr(g, "db_conn"):
+        g.db_conn.close()
+        del g.db_conn
+
 if __name__ == "__main__":
-    db_conn = connect_saat(app.config)
+    with app.app_context():
+        db_conn = get_db(app.config)
     app.run(host="0.0.0.0")

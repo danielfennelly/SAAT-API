@@ -11,3 +11,6 @@ env3/
 
 # instance folder ignore
 instance/
+
+# Vagrant Ignore
+.vagrant/
