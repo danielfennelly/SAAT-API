@@ -70,16 +70,16 @@ Vagrant.configure("2") do |config|
     apt-get update
     apt-get install -y postgresql git build-essential libbz2-dev libssl-dev \
                           libreadline-dev libsqlite3-dev tk-dev
-    git clone https://github.com/pyenv/pyenv.git /home/vagrant/.pyenv
+    sudo -H -u vagrant bash -c 'git clone https://github.com/pyenv/pyenv.git /home/vagrant/.pyenv'
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> /home/vagrant/.bash_profile
     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> /home/vagrant/.bash_profile
     echo 'eval "$(pyenv init -)"' >> /home/vagrant/.bash_profile
     sudo -H -u vagrant bash -c '/home/vagrant/.pyenv/bin/pyenv install 3.6.1'
-    sudo -H -u vagrant bash -c 'pyenv global 3.6.1'
+    sudo -H -u vagrant bash -c '/home/vagrant/.pyenv/bin/pyenv global 3.6.1'
     sudo -u postgres createuser vagrant
     sudo -u postgres createdb vagrant
-    sudo -H -u vagrant bash -c 'psql /vagrant/schema.sql'
-    sudo -H -u vagrant bash -c 'pip install -r /vagrant/requirements.txt'
+    sudo -H -u vagrant bash -c 'psql -f /vagrant/schema.sql'
+    sudo -H -u vagrant bash -c '/home/vagrant/.pyenv/versions/3.6.1/bin/pip install -r /vagrant/requirements.txt'
   SHELL
   config.vm.network :forwarded_port, guest: 5000, host: 5000, host_ip: "127.0.0.1"
 
