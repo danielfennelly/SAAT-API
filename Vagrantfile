@@ -75,6 +75,12 @@ Vagrant.configure("2") do |config|
     echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> /home/vagrant/.bash_profile
     echo 'eval "$(pyenv init -)"' >> /home/vagrant/.bash_profile
     sudo -H -u vagrant bash -c '/home/vagrant/.pyenv/bin/pyenv install 3.6.1'
+    sudo -H -u vagrant bash -c 'pyenv global 3.6.1'
+    sudo -u postgres createuser vagrant
+    sudo -u postgres createdb vagrant
+    sudo -H -u vagrant bash -c 'psql /vagrant/schema.sql'
+    sudo -H -u vagrant bash -c 'pip install -r /vagrant/requirements.txt'
   SHELL
+  config.vm.network :forwarded_port, guest: 5000, host: 5000, host_ip: "127.0.0.1"
 
 end
